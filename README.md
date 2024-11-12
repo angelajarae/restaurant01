@@ -17,8 +17,8 @@ Para levantar y configurar el contenedor de SQL Server, sigue los siguientes pas
 ### Ejecuciones posteriores
 
 Para iniciar el contenedor en las ejecuciones posteriores, simplemente usa:
-    ```bash
-    docker-compose up
+```bash
+docker-compose up
 
 ## Conexión a SQL Server desde VSCode
 
