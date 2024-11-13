@@ -27,6 +27,7 @@ docker-compose up
 Para conectarte al servidor SQL Server usando la extensión de SQL Server en VSCode, configura la conexión con las siguientes credenciales:
 
 - **Server name**: `localhost,1433`
+- **Database name**: `restaurant01`
 - **Authentication type**: `SQL Login`
 - **Username**: `SA`
 - **Password**: `Password123`
