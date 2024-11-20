@@ -1,190 +1,151 @@
--- Drop the database if it exists
-IF DB_ID('restaurant01') IS NOT NULL
-BEGIN
-    DROP DATABASE restaurant01;
-END;
-
--- Create the database again
-CREATE DATABASE restaurant01;
-GO
-
--- Use the newly created database
-USE restaurant01;
-GO
-
--- Tabla de Roles
-CREATE TABLE Roles (
+-- Crear tabla Rol
+CREATE TABLE Rol (
     id INT PRIMARY KEY,
-    nombre VARCHAR(50)
+    nombre VARCHAR(255) NOT NULL
 );
 
--- Tabla Persona
-CREATE TABLE Persona (
-    id INT PRIMARY KEY,
-    nombres VARCHAR(255),
-    apellidos VARCHAR(255),
-    dni VARCHAR(50)
-);
-
--- Tabla Usuario
+-- Crear tabla Usuario
 CREATE TABLE Usuario (
     id INT PRIMARY KEY,
-    correo VARCHAR(255),
-    contrasena VARCHAR(255),
-    persona INT,
-    rol INT,
-    FOREIGN KEY (persona) REFERENCES Persona(id),
-    FOREIGN KEY (rol) REFERENCES Roles(id)
+    nombres VARCHAR(255) NOT NULL,
+    apellidos VARCHAR(255) NOT NULL,
+    correo VARCHAR(255) UNIQUE NOT NULL,
+    contraseña VARCHAR(255) NOT NULL
 );
 
--- Tabla Cajero
+-- Crear tabla Trabajador
+CREATE TABLE Trabajador (
+    id INT PRIMARY KEY,
+    correo VARCHAR(255) NOT NULL,
+    contraseña VARCHAR(255) NOT NULL,
+    usuario_fk INT NOT NULL,
+    rol_fk INT NOT NULL,
+    FOREIGN KEY (usuario_fk) REFERENCES Usuario(id),
+    FOREIGN KEY (rol_fk) REFERENCES Rol(id)
+);
+
+-- Crear tabla Cajero
 CREATE TABLE Cajero (
     id INT PRIMARY KEY,
-    usuario INT,
-    FOREIGN KEY (usuario) REFERENCES Usuario(id)
+    trabajador_fk INT NOT NULL,
+    FOREIGN KEY (trabajador_fk) REFERENCES Trabajador(id)
 );
 
--- Tabla Cliente
-CREATE TABLE Cliente (
-    id INT PRIMARY KEY,
-    usuario INT,
-    FOREIGN KEY (usuario) REFERENCES Usuario(id)
-);
-
--- Tabla Mozo
-CREATE TABLE Mozo (
-    id INT PRIMARY KEY,
-    usuario INT,
-    FOREIGN KEY (usuario) REFERENCES Usuario(id)
-);
-
--- Tabla Metodo de Pago
-CREATE TABLE Metodo_Pago (
-    id INT PRIMARY KEY,
-    nombre VARCHAR(255)
-);
-
--- Tabla Mesa con referencia al mozo actual
+-- Crear tabla Mesa
 CREATE TABLE Mesa (
     id INT PRIMARY KEY,
-    capacidad INT,
-    disponible INT,
-    mozo INT,
-    FOREIGN KEY (mozo) REFERENCES Mozo(id)
+    capacidad INT NOT NULL,
+    disponible BIT NOT NULL,
+    mozo_fk INT NOT NULL,
+    FOREIGN KEY (mozo_fk) REFERENCES Trabajador(id)
 );
 
--- Tabla Pedido con estado
-CREATE TABLE Pedido (
+-- Crear tabla Gestor_de_Inventario
+CREATE TABLE Gestor_de_Inventario (
     id INT PRIMARY KEY,
-    mesa INT,
-    monto FLOAT,
-    estado VARCHAR(50),
-    fecha DATETIME,
-    FOREIGN KEY (mesa) REFERENCES Mesa(id)
+    usuario_fk INT NOT NULL,
+    FOREIGN KEY (usuario_fk) REFERENCES Usuario(id)
 );
 
--- Tabla para Producto y Categoria de Producto
+-- Crear tabla Categoria
 CREATE TABLE Categoria (
     id INT PRIMARY KEY,
-    nombre VARCHAR(255)
+    nombre VARCHAR(255) NOT NULL
 );
 
+-- Crear tabla Producto
 CREATE TABLE Producto (
     id INT PRIMARY KEY,
-    nombre VARCHAR(255),
+    nombre VARCHAR(255) NOT NULL,
     descripcion VARCHAR(255),
-    stock INT,
-    precio FLOAT,
-    categoria INT,
-    FOREIGN KEY (categoria) REFERENCES Categoria(id)
+    stock INT NOT NULL,
+    precio FLOAT NOT NULL,
+    categoria_fk INT NOT NULL,
+    gestor_de_inventario_fk INT NOT NULL,
+    FOREIGN KEY (categoria_fk) REFERENCES Categoria(id),
+    FOREIGN KEY (gestor_de_inventario_fk) REFERENCES Gestor_de_Inventario(id)
 );
 
--- Tabla Oferta
+-- Crear tabla Oferta
 CREATE TABLE Oferta (
     id INT PRIMARY KEY,
-    nombre VARCHAR(255),
-    precio FLOAT,
-    precio_base FLOAT,
+    nombre VARCHAR(255) NOT NULL,
+    precio_base FLOAT NOT NULL,
     porcentaje_descuento FLOAT,
-    fecha_inicio DATETIME,
-    fecha_fin DATETIME
+    fecha_inicio DATETIME NOT NULL,
+    fecha_fin DATETIME NOT NULL
 );
 
--- Tabla de relación Oferta-Producto
+-- Crear tabla Oferta_Producto
 CREATE TABLE Oferta_Producto (
     id INT PRIMARY KEY,
-    oferta INT,
-    producto INT,
-    cantidad INT,
-    FOREIGN KEY (oferta) REFERENCES Oferta(id),
-    FOREIGN KEY (producto) REFERENCES Producto(id)
+    oferta_fk INT NOT NULL,
+    producto_fk INT NOT NULL,
+    cantidad INT NOT NULL,
+    FOREIGN KEY (oferta_fk) REFERENCES Oferta(id),
+    FOREIGN KEY (producto_fk) REFERENCES Producto(id)
 );
 
--- Tablas de Relación de Pedido-Producto y Pedido-Oferta
+-- Crear tabla Pedido
+CREATE TABLE Pedido (
+    id INT PRIMARY KEY,
+    mesa_fk INT NOT NULL,
+    monto FLOAT NOT NULL,
+    estado VARCHAR(50) NOT NULL,
+    fecha DATETIME NOT NULL,
+    FOREIGN KEY (mesa_fk) REFERENCES Mesa(id)
+);
+
+-- Crear tabla Pedido_Producto
 CREATE TABLE Pedido_Producto (
     id INT PRIMARY KEY,
-    producto INT,
-    cantidad INT,
-    precio FLOAT,
-    pedido INT,
-    FOREIGN KEY (producto) REFERENCES Producto(id),
-    FOREIGN KEY (pedido) REFERENCES Pedido(id)
+    producto_fk INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio FLOAT NOT NULL,
+    descuento FLOAT,
+    pedido_fk INT NOT NULL,
+    FOREIGN KEY (producto_fk) REFERENCES Producto(id),
+    FOREIGN KEY (pedido_fk) REFERENCES Pedido(id)
 );
 
+-- Crear tabla Pedido_Oferta
 CREATE TABLE Pedido_Oferta (
     id INT PRIMARY KEY,
-    oferta INT,
-    cantidad INT,
-    precio FLOAT,
+    oferta_fk INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio FLOAT NOT NULL,
     descuento FLOAT,
-    pedido INT,
-    FOREIGN KEY (oferta) REFERENCES Oferta(id),
-    FOREIGN KEY (pedido) REFERENCES Pedido(id)
+    pedido_fk INT NOT NULL,
+    FOREIGN KEY (oferta_fk) REFERENCES Oferta(id),
+    FOREIGN KEY (pedido_fk) REFERENCES Pedido(id)
 );
 
--- Tabla Factura con relación al cliente y al cajero
+-- Crear tabla Factura
 CREATE TABLE Factura (
     id INT PRIMARY KEY,
-    pedido INT,
-    cliente INT,
-    monto_final FLOAT,
-    estado INT,
+    pedido_fk INT NOT NULL,
+    monto_final FLOAT NOT NULL,
+    estado BIT NOT NULL,
     descuento FLOAT,
-    cajero INT,
-    FOREIGN KEY (pedido) REFERENCES Pedido(id),
-    FOREIGN KEY (cliente) REFERENCES Cliente(id),
-    FOREIGN KEY (cajero) REFERENCES Cajero(id)
+    trabajador_fk INT NOT NULL,
+    FOREIGN KEY (pedido_fk) REFERENCES Pedido(id),
+    FOREIGN KEY (trabajador_fk) REFERENCES Trabajador(id)
 );
 
--- Tabla Pago
+-- Crear tabla Metodo_Pago
+CREATE TABLE Metodo_Pago (
+    id INT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL
+);
+
+-- Crear tabla Pago
 CREATE TABLE Pago (
     id INT PRIMARY KEY,
-    factura INT,
-    fecha DATETIME,
-    metodo_pago INT,
-    monto_total FLOAT,
+    factura_fk INT NOT NULL,
+    fecha DATETIME NOT NULL,
+    metodo_pago_fk INT NOT NULL,
+    monto_total FLOAT NOT NULL,
     monto_devuelto FLOAT,
-    FOREIGN KEY (factura) REFERENCES Factura(id),
-    FOREIGN KEY (metodo_pago) REFERENCES Metodo_Pago(id)
-);
-
--- Tabla Interacciones (registro de interacciones entre cliente y mozo)
-CREATE TABLE Interaccion (
-    id INT PRIMARY KEY,
-    cliente INT,
-    mozo INT,
-    tipo_interaccion VARCHAR(255),
-    fecha DATETIME,
-    FOREIGN KEY (cliente) REFERENCES Cliente(id),
-    FOREIGN KEY (mozo) REFERENCES Mozo(id)
-);
-
--- Tabla Entrega de Pedidos (registro de entrega de pedido a la mesa)
-CREATE TABLE Entrega_Pedido (
-    id INT PRIMARY KEY,
-    pedido INT,
-    mozo INT,
-    fecha DATETIME,
-    FOREIGN KEY (pedido) REFERENCES Pedido(id),
-    FOREIGN KEY (mozo) REFERENCES Mozo(id)
+    FOREIGN KEY (factura_fk) REFERENCES Factura(id),
+    FOREIGN KEY (metodo_pago_fk) REFERENCES Metodo_Pago(id)
 );
