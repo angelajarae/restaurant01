@@ -147,7 +147,6 @@ CREATE TABLE Factura (
     monto_final FLOAT NOT NULL CHECK (monto_final >= 0),  -- Ensure final amount is non-negative
     estado BIT NOT NULL DEFAULT 0,  -- Default to 'not paid' (0)
     descuento FLOAT CHECK (descuento >= 0 AND descuento <= 1),  -- Discount between 0 and 100
-    trabajador_fk INT NOT NULL,
     FOREIGN KEY (pedido_fk) REFERENCES Pedido(id) ON DELETE CASCADE,
     FOREIGN KEY (trabajador_fk) REFERENCES Cajero(id) ON DELETE SET NULL
 );
